@@ -1,0 +1,55 @@
+# Sekrety — nigdy w repo (docs/SECURITY.md)
+host/config/host-config.yaml
+host/config/paired_devices.json
+host/config/control_token
+# Lokalne ścieżki projektów użytkownika — nie sekret, ale nie do repo
+# (specyficzne dla dysku danej osoby, patrz discovery/extra_project_paths.dart)
+host/config/extra_project_paths.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.jks
+**/pairing_secret*
+**/*.keystore
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+# Tylko katalogi wyjściowe builda Fluttera (bezpośrednio w korzeniu projektu),
+# NIE "**/build/" — to złapałoby też lib/build/ (nasz kod: command_runner.dart,
+# build_queue.dart) i analogiczne foldery źródłowe w innych projektach.
+host/build/
+host/*.exe
+android_app/build/
+**/pubspec.lock
+!**/pubspec_overrides.yaml
+
+# Android build output
+android_app/android/.gradle/
+android_app/android/local.properties
+android_app/android/app/*.jks
+android_app/android/key.properties
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.iml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logi lokalne hosta (audyt — nie commitować historii buildów)
+host/logs/
+
+# .gitignore
+graphify-out/
+graph.json
+.graphify-cache/
+
+# Python (narzędzia tłumaczeń)
+__pycache__/
+*.pyc

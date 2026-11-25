@@ -1,0 +1,8 @@
+# Skrypty uruchamiane na Linuxie (instalator VPS) muszą mieć końce linii LF,
+# niezależnie od core.autocrlf na Windows — inaczej bash na serwerze się wysypie.
+*.sh text eol=lf
+
+# Skrypty Windows: CRLF (cmd.exe i PowerShell 5.1); .ps1 zapisane z BOM, żeby PowerShell 5.1
+# poprawnie czytał polskie znaki.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf

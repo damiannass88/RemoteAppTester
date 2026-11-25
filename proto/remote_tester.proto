@@ -1,0 +1,293 @@
+syntax = "proto3";
+
+package remotetester.v1;
+
+// Kontrakt gRPC między aplikacją RemoteAppTester na Androidzie (klient) a hostem
+// RemoteAppTester na Windows / Ubuntu VPS (serwer, `remoteapptester serve`).
+// Uwierzytelnienie (device-id, timestamp, nonce, hmac) NIE jest polem w
+// wiadomościach poniżej — jest dołączane jako gRPC metadata przez wspólny
+// interceptor po obu stronach (docs/architektura-remote-build.md, sekcja 3).
+// Kontrakty tutaj zostają czyste, a cała logika auth siedzi w jednym miejscu.
+//
+// Zasada: telefon nigdy nie wysyła komend ani ścieżek — wyłącznie
+// nieprzezroczyste identyfikatory (project_id, build_id) i wybór z zamkniętych
+// enumów. Sposób budowania wynika z konfiguracji projektu na hoście.
+
+service HostAgent {
+  // Zdrowie/ping — lekki RPC do health-checku z telefonu.
+  rpc Ping(Empty) returns (Pong);
+
+  // Projekty skonfigurowane na hoście.
+  rpc ListProjects(Empty) returns (ProjectList);
+
+  // Start builda — server-streaming statusu/logów do zlecającego urządzenia.
+  rpc StartBuild(BuildRequest) returns (stream BuildEvent);
+
+  // Status ostatniego/aktywnego builda — używane przy reconnect, żeby klient
+  // nie zakładał, że trzeba zacząć od nowa po zerwaniu połączenia.
+  rpc GetBuildStatus(BuildId) returns (stream BuildEvent);
+
+  // Transfer artefaktu w chunkach, wznawialny.
+  rpc DownloadArtifact(ArtifactRequest) returns (stream Chunk);
+
+  // Oszczędny transfer: różnica (delta, skompresowana) między instalką, którą
+  // telefon już ma (base_sha256), a nową. Pusty base_sha256 = cała instalka
+  // skompresowana. FAILED_PRECONDITION = host nie ma już tej bazy (telefon
+  // ponawia z pustym base_sha256).
+  rpc DownloadDelta(DeltaRequest) returns (stream Chunk);
+
+  // Opcje projektu z telefonu (pilot): instalacja, uruchamianie, sygnał agenta,
+  // czy TEN telefon dostaje nowe wersje. Komend i „budowania z telefonu”
+  // telefon nie zmienia. Zwraca projekt po zmianie.
+  rpc UpdateProjectOptions(ProjectOptionsUpdate) returns (Project);
+
+  // Wymiana sekretu urządzenia: po parowaniu (kod z QR jest jednorazowy) i
+  // okresowo. Stary sekret działa do pierwszego żądania podpisanego nowym.
+  rpc RotateSecret(Empty) returns (SecretRotation);
+
+  // Anulowanie aktywnego/kolejkowanego builda przez zlecające urządzenie.
+  rpc CancelBuild(BuildId) returns (Ack);
+
+  // Stały strumień dostaw: host wysyła nowe wersje aplikacji (zbudowane z
+  // dowolnego wyzwalacza) do urządzeń z `deliver.devices` w remoteapptester.yaml.
+  // Najpierw zaległa dostawa per projekt (gdy telefon był offline), potem
+  // nowe na bieżąco, a między nimi heartbeat — telefon po jego braku sam
+  // nawiązuje połączenie od nowa.
+  rpc WatchDeliveries(Empty) returns (stream DeliveryEvent);
+
+  // Telefon potwierdza obsłużenie dostawy (zainstalowana albo odrzucona) —
+  // host przestaje ją wysyłać przy kolejnych połączeniach.
+  rpc AckDelivery(BuildId) returns (Ack);
+
+  // Foldery w katalogu projektów hosta, które nie są jeszcze projektami — same
+  // nazwy, bez ścieżek. Pusta lista, gdy host nie pozwala telefonom dodawać projektów.
+  rpc ListAvailableFolders(Empty) returns (FolderList);
+
+  // Nowy projekt z telefonu: WYŁĄCZNIE w katalogu projektów hosta, po samej
+  // nazwie folderu (bez ścieżek). Komendy wpisuje host z własnych szablonów.
+  rpc CreateProject(CreateProjectRequest) returns (Project);
+
+  // Podgląd aplikacji web: host uruchamia serwer deweloperski projektu komendą
+  // z WŁASNEJ bazy (telefon wskazuje tylko project_id) i udostępnia go w sieci
+  // Tailscale przez proxy z tokenem. Strumień: stan, log serwera, sygnał
+  // „odśwież” (np. po zmianach agenta) — do zamknięcia przez telefon. Zamknięcie
+  // strumienia nie zatrzymuje podglądu (zatrzymuje StopPreview albo bezczynność).
+  rpc StartPreview(PreviewRequest) returns (stream PreviewEvent);
+  rpc StopPreview(PreviewRequest) returns (Ack);
+
+  // Zgłoszenie problemu z podglądu (notatka, adres strony, konsola JS) — host
+  // dopisuje je do pliku w folderze projektu, skąd czyta je agent AI.
+  rpc ReportPreviewIssue(PreviewIssue) returns (Ack);
+}
+
+message FolderList {
+  repeated AvailableFolder folders = 1;
+  bool adding_allowed = 2;  // host pozwala telefonom dodawać projekty
+}
+
+message AvailableFolder {
+  string name = 1;
+  ProjectKind kind = 2;
+}
+
+enum ProjectTemplate {
+  PROJECT_TEMPLATE_UNSPECIFIED = 0;
+  EXISTING_FOLDER = 1;  // folder z FolderList
+  EMPTY_FOLDER = 2;     // nowy pusty folder
+  FLUTTER_APP = 3;      // nowy projekt Flutter (flutter create, Android)
+}
+
+message CreateProjectRequest {
+  string folder_name = 1;  // nazwa folderu w katalogu projektów, nie ścieżka
+  ProjectTemplate template = 2;
+}
+
+message Empty {}
+
+message Pong {
+  int64 server_time_unix_ms = 1;
+  string host_version = 2;  // wersja RemoteAppTester na komputerze (pusta w starszych)
+}
+
+// --- Projekty ---
+
+// Rozpoznany typ projektu — wyłącznie informacja o tym, jak projekt da się
+// zbudować (zamknięta lista receptur w kodzie hosta).
+enum ProjectKind {
+  PROJECT_KIND_UNSPECIFIED = 0;
+  OTHER = 1;           // technologia bez receptury budowania APK
+  FLUTTER = 2;
+  ANDROID_GRADLE = 3;  // natywny Android (gradlew + moduł app)
+  REACT_NATIVE = 4;    // rozpoznawany; receptura budowania — później
+  CAPACITOR = 5;       // rozpoznawany; receptura budowania — później
+}
+
+message Project {
+  string project_id = 1;           // nieprzezroczysty identyfikator, nigdy ścieżka systemowa
+  string display_name = 2;         // nazwa projektu w RemoteAppTester
+  ProjectKind kind = 3;
+  bool installable_on_phone = 4;   // projekt ma poprawne komendy budowania
+  repeated string profiles = 5;    // nazwy wariantów budowania (np. Debug, Release)
+  string default_profile = 6;
+  string spec_error = 7;           // niepuste = komendy wymagają uwagi na komputerze (build zablokowany)
+  bool phone_trigger_allowed = 8;  // opcja projektu: budowanie z telefonu
+  bool launch_after_install = 9;   // opcja projektu: uruchom po instalacji
+  // --- status (pilot) ---
+  bool building = 10;              // trwa albo czeka build tego projektu
+  BuildPhase last_phase = 11;      // wynik/faza ostatniego builda (UNSPECIFIED = brak)
+  int64 last_build_unix_ms = 12;
+  string active_build_id = 13;     // trwający build, który ten telefon może obserwować
+  string last_artifact_build_id = 14; // ostatnia instalka dostępna dla tego telefonu; puste = brak
+  int32 progress_percent = 15;
+  // --- sygnał od agenta AI (plik .remoteapptester-signal w folderze projektu) ---
+  bool changes_pending = 16;       // agent zgłosił zmiany, których nie ma jeszcze w żadnym buildzie
+  string agent_note = 17;          // ostatnia notatka agenta (tekst jawny, przycięty, bez znaków sterujących)
+  int64 agent_note_unix_ms = 18;
+  bool agent_build_allowed = 19;   // opcja projektu: sygnał agenta sam uruchamia build i wysyłkę
+  InstallMode install_mode = 20;   // opcja projektu: co po zbudowaniu
+  bool delivers_to_this_phone = 21; // ten telefon jest wśród docelowych
+  bool agent_push_allowed = 22;    // opcja projektu: agent może wysłać własną instalkę (rt push)
+  // --- podgląd aplikacji web ---
+  bool preview_available = 23;     // host zna komendę uruchomienia i opcja projektu pozwala na podgląd
+  string preview_kind = 24;        // rozpoznana technologia (np. „ASP.NET”, „Node”), tylko do wyświetlenia
+  bool preview_running = 25;       // podgląd działa (albo startuje)
+}
+
+message SecretRotation {
+  string new_secret = 1;
+}
+
+message ProjectOptionsUpdate {
+  string project_id = 1;
+  // Pola nieustawione = bez zmian.
+  optional bool launch_after_install = 2;
+  optional InstallMode install_mode = 3;
+  optional bool agent_build_allowed = 4;
+  optional bool deliver_to_this_phone = 5;
+  optional bool agent_push_allowed = 6;
+}
+
+message ProjectList {
+  repeated Project projects = 1;
+}
+
+// --- Buildy ---
+
+message BuildRequest {
+  // Komendy budowania żyją WYŁĄCZNIE w bazie hosta — telefon wskazuje projekt
+  // i (opcjonalnie) NAZWĘ wariantu z listy Project.profiles.
+  string project_id = 1;
+  string profile = 2;   // puste = domyślny wariant projektu
+}
+
+enum BuildPhase {
+  BUILD_PHASE_UNSPECIFIED = 0;
+  QUEUED = 1;
+  PREPARE = 2;     // przygotowanie zależności wg receptury
+  BUILDING = 3;
+  PACKAGING = 4;
+  DONE = 5;
+  FAILED = 6;
+  CANCELLED = 7;
+}
+
+message BuildEvent {
+  string build_id = 1;
+  BuildPhase phase = 2;
+  string log_line = 3;          // przepuszczone przez filtr redakcji sekretów
+  int32 progress_percent = 4;
+  int32 queue_position = 5;     // 0 gdy aktywny/zakończony; >0 gdy oczekuje w kolejce
+}
+
+message BuildId {
+  string build_id = 1;
+}
+
+message Ack {
+  bool success = 1;
+  string message = 2;
+}
+
+// --- Transfer artefaktu ---
+
+message ArtifactRequest {
+  string build_id = 1;
+  int64 resume_from_byte_offset = 2; // 0 dla pełnego pobrania, >0 przy wznowieniu
+}
+
+message DeltaRequest {
+  string build_id = 1;
+  string base_sha256 = 2;            // instalka, którą telefon ma; puste = brak
+  int64 resume_from_byte_offset = 3;
+}
+
+message Chunk {
+  bytes data = 1;
+  int64 offset = 2;
+  bool is_last = 3;
+  string sha256_full_file = 4; // wypełnione tylko w ostatnim chunku (integralność przesyłanego pliku)
+  int64 total_size = 5;        // rozmiar przesyłanego pliku (postęp)
+  string target_sha256 = 6;    // DownloadDelta: SHA-256 instalki po złożeniu (w ostatnim chunku)
+  int64 target_size = 7;       // DownloadDelta: rozmiar instalki po złożeniu
+}
+
+// --- Dostawy ---
+
+enum InstallMode {
+  INSTALL_MODE_UNSPECIFIED = 0;
+  AUTO = 1;   // zainstaluj od razu
+  ASK = 2;    // zapytaj użytkownika na telefonie
+  OFF = 3;    // nie wysyłaj (opcja projektu; nie występuje w Delivery)
+}
+
+message Delivery {
+  string build_id = 1;
+  string project_id = 2;
+  string project_name = 3;
+  int64 size_bytes = 4;
+  string sha256 = 5;
+  InstallMode install = 6;
+  bool launch = 7;
+  int64 built_unix_ms = 8;
+  string method_id = 9;
+}
+
+message DeliveryEvent {
+  oneof event {
+    Delivery delivery = 1;
+    int64 heartbeat_unix_ms = 2;
+  }
+}
+
+// --- Podgląd aplikacji web ---
+
+message PreviewRequest {
+  string project_id = 1;
+}
+
+enum PreviewState {
+  PREVIEW_STATE_UNSPECIFIED = 0;
+  PREVIEW_STARTING = 1;  // serwer startuje (np. pierwszy build dotnet)
+  PREVIEW_RUNNING = 2;   // strona odpowiada — url gotowy
+  PREVIEW_STOPPED = 3;
+  PREVIEW_FAILED = 4;    // message = przyczyna
+}
+
+message PreviewEvent {
+  PreviewState state = 1;
+  string url = 2;          // adres strony z jednorazowym tokenem (tylko w stanie RUNNING)
+  string log_line = 3;     // linia logu serwera (po redakcji sekretów)
+  bool reload = 4;         // odśwież stronę (zmiany w projekcie)
+  string message = 5;
+  bool pinned_tls = 6;     // true = certyfikat hosta z parowania (sprawdź odcisk), false = publiczny HTTPS Tailscale
+}
+
+message PreviewIssue {
+  string project_id = 1;
+  string note = 2;                 // opis od testującego
+  string page_url = 3;             // adres strony (bez tokenu)
+  repeated string console = 4;     // ostatnie komunikaty konsoli JS / błędy strony
+  string user_agent = 5;
+  int32 viewport_width = 6;
+  int32 viewport_height = 7;
+}

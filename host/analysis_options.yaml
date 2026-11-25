@@ -1,0 +1,12 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - lib/generated/**
+
+linter:
+  rules:
+    # Konstruktory z polami prywatnymi i domyślnymi zależnościami (np. zegar w
+    # testach) czytelniej zostawić jawne.
+    prefer_initializing_formals: false

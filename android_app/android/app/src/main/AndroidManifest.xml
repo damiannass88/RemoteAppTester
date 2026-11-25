@@ -1,0 +1,90 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- INTERNET do komunikacji z agentem; REQUEST_INSTALL_PACKAGES do instalacji
+         pobranego APK przez PackageInstaller.Session (Faza 3). Brak dostępu do
+         kontaktów/lokalizacji/pamięci masowej/Bluetooth. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Powiadomienie „Dotknij, aby zainstalować”, gdy nowa wersja przyjdzie w tle. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 12+: aktualizacje aplikacji zainstalowanych wcześniej przez
+         RemoteAppTester bez okna potwierdzenia (docs/PROJECT_ASSUMPTIONS.md, sekcja 8).
+         Uprawnienie "normal" — nie daje dostępu do niczego poza tym. -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+
+    <!-- CAMERA: świadome ODEJŚCIE od pierwotnej listy "tylko te dwa uprawnienia"
+         (docs/architektura-remote-build.md, sekcja 5) — dodane na wyraźną prośbę
+         użytkownika, żeby parowanie odbywało się przez skan kodu QR zamiast
+         ręcznego przepisywania device_id/pairing_secret. Używane WYŁĄCZNIE na
+         ekranie skanowania (mobile_scanner) — patrz PROJECT_ASSUMPTIONS.md.
+         Alternatywa bez tego uprawnienia: przycisk "Wklej ze schowka" na ekranie
+         ustawień (zeskanuj dowolną zewnętrzną apką, wklej wynik). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Wymóg local_auth (biometria/PIN przed wrażliwymi akcjami, sekcja 6.5,
+         Faza 4) — USE_BIOMETRIC dla API 28+, USE_FINGERPRINT dla starszych. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <application
+        android:label="RemoteAppTester"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <!-- usesCleartextTraffic USUNIĘTE (Faza 4) — serwer gRPC wymaga teraz
+             TLS z przypiętym certyfikatem, patrz net/agent_client.dart. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Specifies an Android theme to apply to this Activity as soon as
+                 the Android process has started. This theme is visible to the user
+                 while the Flutter UI initializes. After that, this theme continues
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!-- Odbiera wynik PackageInstaller.Session.commit() (Faza 3) — celowany
+             wyłącznie jawnym Intentem z naszej własnej apki, stąd exported=false. -->
+        <receiver
+            android:name=".InstallResultReceiver"
+            android:exported="false" />
+    </application>
+    <!-- Required to query activities that can process text, see:
+         https://developer.android.com/training/package-visibility and
+         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <!-- „Uruchom” i uruchamianie po instalacji: Android 11+ ukrywa inne aplikacje,
+             a część producentów (np. HyperOS) nie robi wyjątku dla aplikacji, które sami
+             zainstalowaliśmy. Widzimy tylko ekrany startowe — bez QUERY_ALL_PACKAGES. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

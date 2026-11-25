@@ -1,0 +1,25 @@
+# Szablon konfiguracji hosta RemoteAppTester. "remoteapptester init" tworzy config/host-config.yaml
+# (ten plik jest gitignored). NIGDY nie wpisuj tu sekretów — te żyją wyłącznie w SecretStore
+# (Windows DPAPI / plik 0600 na Linuxie), patrz docs/SECURITY.md.
+
+# Katalog nadrzędny z projektami. Projekty spoza niego: "remoteapptester folders add <ścieżka>".
+projects_root: "D:\Dev\Projects"
+
+# Tylko bezpośrednie podkatalogi, bez rekurencji w głąb.
+scan_depth: 1
+
+# Każdy nieukryty podfolder projects_root to projekt, w dowolnej technologii.
+# Opcjonalnie można zawęzić listę do folderów zawierających dany plik:
+# only_folders_with: "remoteapptester.yaml"
+
+# Port TCP serwera gRPC — nasłuch WYŁĄCZNIE na adresie interfejsu Tailscale, nigdy 0.0.0.0.
+# Ten sam port musi być wpisany w regule Tailscale ACL (i w zaporze Windows).
+listen_port: 50051
+
+# Zamknięty zbiór dopuszczonych wariantów budowania — nigdy budowany z danych od telefonu.
+allowed_build_flags:
+  - "--release"
+  - "--debug"
+
+# Limit żądań/minutę per sparowany telefon.
+rate_limit_per_device_per_minute: 120
