@@ -1,5 +1,7 @@
 # RemoteAppTester dla agentów AI
 
+🌐 [English](en/AI_AGENTS.md) · **Polski**
+
 Instrukcja dla agenta AI (Claude Code, Codex, Cursor i innych), który pracuje w folderze projektu
 przypisanym do RemoteAppTestera, na serwerze Linux/VPS albo na Windows. Każdy taki folder ma
 też `REMOTEAPPTESTER.md`, a CLAUDE.md i AGENTS.md mają w nim krótką wskazówkę.

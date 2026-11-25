@@ -1,23 +1,25 @@
-# desktop_app/ — RemoteAppTester na Windows (aplikacja okienkowa)
+# desktop_app/ — RemoteAppTester for Windows (windowed app)
 
-Flutter Windows. Uruchamia rdzeń hosta (`../host`, `HostRuntime`) we własnym procesie:
-zaszyfrowana baza projektów, równoległe buildy, dostawy i serwer dla telefonów (Tailscale),
-lokalny kanał `127.0.0.1` dla `rt b`.
+🌐 **English** · [Polski](README.pl.md)
+
+Flutter for Windows. It runs the host core (`../host`, `HostRuntime`) in its own process: the
+encrypted project database, parallel builds, deliveries and the server for phones (Tailscale), plus
+the local `127.0.0.1` channel for `rt b`.
 
 ```
 lib/
-├── main.dart            # start: katalog danych, jedna kopia, zasobnik, okno (--minimized przy autostarcie)
-├── app_controller.dart  # stan aplikacji nad HostRuntime (projekty, buildy na żywo, propozycje agentów)
+├── main.dart            # startup: data folder, single instance, tray, window (--minimized at autostart)
+├── app_controller.dart  # app state on top of HostRuntime (projects, live builds, agent proposals)
 └── ui/
-    ├── home_page.dart       # nawigacja + pasek stanu (Tailscale, buildy, telefony online)
-    ├── projects_page.dart   # lista projektów, dodawanie (istniejący / pusty / Flutter)
-    ├── project_detail.dart  # Budowanie: wariant, Zbuduj i wyślij, telefony, log na żywo, historia
-    ├── commands_tab.dart    # edytor komend + propozycje z REMOTEAPPTESTER.md
-    ├── options_tab.dart     # opcje projektu (instalacja, uruchomienie, telefony, wyzwalacze)
-    ├── phones_page.dart     # parowanie QR, online, odwołanie
-    └── settings_page.dart   # autostart, równoległość, wstrzymanie, diagnostyka
+    ├── home_page.dart       # navigation + status bar (Tailscale, builds, phones online)
+    ├── projects_page.dart   # project list, adding (existing / empty / Flutter)
+    ├── project_detail.dart  # Build: variant, Build and send, phones, live log, history
+    ├── commands_tab.dart    # command editor + proposals from REMOTEAPPTESTER.md
+    ├── options_tab.dart     # project options (install, launch, phones, triggers)
+    ├── phones_page.dart     # QR pairing, online state, revoking, Tailscale ACL generator
+    └── settings_page.dart   # autostart, parallel builds, pause, diagnostics
 ```
 
-Uruchomienie deweloperskie: `flutter run -d windows`. Wymaga trybu dewelopera Windows
-(wtyczki natywne: `window_manager`, `tray_manager`, `file_selector`).
-Dane: `%LOCALAPPDATA%\RemoteAppTester` (albo `REMOTEAPPTESTER_HOME`).
+Development run: `flutter run -d windows`. Needs Windows Developer Mode (native plugins:
+`window_manager`, `tray_manager`, `file_selector`).
+Data: `%LOCALAPPDATA%\RemoteAppTester` (or `REMOTEAPPTESTER_HOME`).

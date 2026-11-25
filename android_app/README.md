@@ -1,64 +1,67 @@
-# android_app/ — aplikacja RemoteAppTester (Android, Flutter)
+# android_app/ — RemoteAppTester app (Android, Flutter)
 
-Odbiera aplikacje zbudowane na komputerze/VPS, weryfikuje je, instaluje bez roota i bez ADB
-i — jeśli tak wskazano — uruchamia. Łączy się z hostem wyłącznie przez Tailscale, z
-certyfikatem przypiętym przy parowaniu i podpisem HMAC każdego żądania.
+🌐 **English** · [Polski](README.pl.md)
 
-Założenia: [docs/PROJECT_ASSUMPTIONS.md](../docs/PROJECT_ASSUMPTIONS.md) (sekcja 8 —
-instalacja wersji debug na Androidzie) · plan: [docs/IMPLEMENTATION_PLAN.md](../docs/IMPLEMENTATION_PLAN.md).
+Receives apps built on the computer/VPS, verifies them, installs them without root or ADB and, if
+configured, launches them. It connects to the host only through Tailscale, with a certificate pinned
+at pairing and an HMAC signature on every request. The app locks with your fingerprint (or phone PIN).
 
-## Parowanie
+Design decisions: [docs/PROJECT_ASSUMPTIONS.md](../docs/PROJECT_ASSUMPTIONS.md) (PL, section 8:
+installing debug builds on Android) · plan: [docs/IMPLEMENTATION_PLAN.md](../docs/IMPLEMENTATION_PLAN.md) (PL).
 
-Na hoście (lokalnie lub przez SSH): `rt p "Mój telefon"` (na VPS: `sudo rt p "Mój telefon"`). W aplikacji: **Skanuj kod QR** albo **Wklej ze
-schowka** (link `remoteapptester://pair?...`).
+## Pairing
 
-## Uruchomienie
+On the host (locally or over SSH): `rt p "My phone"` (on a VPS: `sudo rt p "My phone"`). In the app:
+**Scan QR code** or **Paste from clipboard** (a `remoteapptester://pair?...` link).
+
+## Running
 
 ```sh
 flutter pub get
-flutter run        # telefon z aktywnym Tailscale w tym samym tailnecie co host
+flutter run        # a phone with Tailscale on, in the same tailnet as the host
 ```
 
-**Pierwsza instalacja z RemoteAppTester:** Android pokaże jednorazowo zgodę „Instalowanie
-nieznanych aplikacji” dla RemoteAppTester — to standardowe zachowanie systemu, nie błąd.
+**First install through RemoteAppTester:** Android shows a one-time "Install unknown apps" consent
+for RemoteAppTester. This is normal system behaviour, not an error.
 
-## Stan
+## Status
 
-- **Automatyczne dostawy:** po połączeniu aplikacja trzyma stały strumień z hostem i sama łączy
-  się ponownie (zmiana sieci, uśpienie, restart hosta). Nowa wersja z dowolnego wyzwalacza
-  (`rt b`, agent AI, inny telefon) jest pobierana, sprawdzana (SHA-256, nazwa pakietu),
-  instalowana (`install: auto`) albo czeka na „Zainstaluj” (`install: ask`), a potem
-  uruchamiana (`deliver.launch`). Stan widać na pasku nad listą projektów.
-- **Android 12+:** aktualizacje aplikacji zainstalowanych wcześniej przez RemoteAppTester bez okna
-  potwierdzenia. Pierwsza instalacja zawsze wymaga potwierdzenia; baner prowadzi do zgody
-  „Instalowanie nieznanych aplikacji”.
-- **Ręcznie:** dotknięcie projektu = build → pobierz → zainstaluj → uruchom, z podglądem logu,
-  anulowaniem i wznowieniem po zerwaniu połączenia.
+- **Automatic delivery:** once connected, the app keeps a permanent stream to the host and reconnects
+  by itself (network change, sleep, host restart). A new version from any trigger (`rt b`, an AI agent,
+  another phone) is downloaded, checked (SHA-256, package name), installed (`install: auto`) or waits
+  for "Install" (`install: ask`), and then launched (`deliver.launch`). The state is shown in the bar
+  above the project list.
+- **Android 12+:** updates of apps previously installed by RemoteAppTester happen without a confirmation
+  window. The first install always needs confirmation; a banner leads to the "Install unknown apps" consent.
+- **Manually:** tapping a project = build → download → install → launch, with a log preview,
+  cancelling, and resuming after a dropped connection.
+- **App lock:** fingerprint or PIN at start and after returning from the background; changing the lock
+  settings requires confirmation.
 
-## Struktura
+## Structure
 
 ```
 android_app/
 ├── android/app/src/main/
 │   ├── AndroidManifest.xml          # INTERNET, REQUEST_INSTALL_PACKAGES, UPDATE_PACKAGES_WITHOUT_USER_ACTION, CAMERA (QR), USE_BIOMETRIC
 │   └── kotlin/com/damiannass/remoteapptester/
-│       ├── MainActivity.kt          # kanał com.damiannass.remoteapptester/package_installer
-│       ├── PackageInstallerPlugin.kt  # PackageInstaller.Session, nazwa pakietu z APK, uruchamianie
-│       └── InstallResultReceiver.kt   # wynik instalacji, systemowe potwierdzenie, uruchomienie
+│       ├── MainActivity.kt          # channel com.damiannass.remoteapptester/package_installer
+│       ├── PackageInstallerPlugin.kt  # PackageInstaller.Session, package name from the APK, launching, fingerprint enrolment
+│       └── InstallResultReceiver.kt   # install result, system confirmation, launching
 └── lib/
-    ├── main.dart                    # automatyczne połączenie albo ekran parowania
-    ├── generated/                   # kod z proto/remote_tester.proto (nie edytować)
-    ├── net/                         # AgentClient (TLS pinning + HMAC), monitor połączenia, komunikaty błędów
-    ├── pairing/                     # URI parowania, HMAC (identyczne jak na hoście)
-    ├── settings/                    # adres hosta (SharedPreferences), sekrety (Keystore)
-    ├── transfer/                    # wznawialne pobieranie + SHA-256
-    ├── delivery/                    # DeliveryService: stały strumień dostaw, reconnect, automat instalacji
-    ├── install/                     # pobranie → kontrola applicationId → instalacja → uruchomienie
-    ├── security/                    # biometria/PIN przed wrażliwymi akcjami
-    └── ui/                          # projekty + pasek dostaw, build, parowanie, skan QR
+    ├── main.dart                    # automatic connection or the pairing screen
+    ├── generated/                   # code from proto/remote_tester.proto (do not edit)
+    ├── net/                         # AgentClient (TLS pinning + HMAC), connection monitor, error messages
+    ├── pairing/                     # pairing URI, HMAC (identical to the host)
+    ├── settings/                    # host address (SharedPreferences), secrets (Keystore)
+    ├── transfer/                    # resumable download + SHA-256
+    ├── delivery/                    # DeliveryService: permanent delivery stream, reconnect, install automation
+    ├── install/                     # download → applicationId check → install → launch
+    ├── security/                    # app lock, biometrics/PIN before sensitive actions
+    └── ui/                          # projects + delivery bar, build, pairing, QR scan, lock screen
 ```
 
-## Testy
+## Tests
 
 ```sh
 flutter analyze

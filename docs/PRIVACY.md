@@ -1,6 +1,8 @@
 # Polityka prywatności / Privacy policy: RemoteAppTester
 
-*Wersja / Version: 2026-11-25. English below.*
+*Wersja / Version: 2026-11-25.*
+
+🌐 [Polski](#po-polsku) · [English](#in-english)
 
 ## Po polsku
 

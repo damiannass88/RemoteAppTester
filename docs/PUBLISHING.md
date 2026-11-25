@@ -1,5 +1,7 @@
 # Publikacja RemoteAppTester (dla opiekuna projektu)
 
+🌐 [English](en/PUBLISHING.md) · **Polski**
+
 Stan zasad: listopad 2026. Przed wydaniem sprawdź je w oficjalnych źródłach.
 Repozytorium publiczne: https://github.com/damiannass88/RemoteAppTester
 
@@ -59,8 +61,9 @@ na jednym komputerze, więc nie nadaje się do publicznych wydań.
 3. Paczki: `host\tool\build_release.ps1 -WithAndroid` i `bash host/tool/build_release.sh`
    (Docker; dla arm64 jednorazowo `docker run --privileged --rm tonistiigi/binfmt --install arm64`).
 4. Skopiuj APK z `host/build/release/windows/` obok paczek i policz jego sumę.
-5. `git tag v<wersja>` i `git push origin v<wersja>`.
-6. GitHub → **Releases → Draft a new release** → tag `v<wersja>`, tytuł `RemoteAppTester <wersja>`,
+5. `git tag v<wersja>` i `git push origin v<wersja>` (albo utwórz tag w formularzu wydania).
+6. Na stronie repozytorium: **Releases** (prawa kolumna) → **Draft a new release**
+   (link bezpośredni: `https://github.com/damiannass88/RemoteAppTester/releases/new`) → tag `v<wersja>`, tytuł `RemoteAppTester <wersja>`,
    opis z IMPLEMENTATION_PLAN.md, załączniki:
    - `RemoteAppTester-windows-x64-<wersja>.zip` + `.sha256`
    - `RemoteAppTester-linux-<wersja>.tar.gz` + `.sha256`

@@ -6,7 +6,7 @@
   Wynik w host\build\release\:
     RemoteAppTester-windows-x64-<wersja>.zip   <- rozpakuj i uruchom install.cmd
     windows\                                <- to samo rozpakowane:
-      install.cmd, uninstall.cmd, install.ps1, README.md, SHA256SUMS
+      install.cmd, uninstall.cmd, install.ps1, README.md, README.pl.md, SHA256SUMS
       RemoteAppTester\                          <- aplikacja okienkowa (RemoteAppTester.exe)
         cli\bin\rt.exe, remoteapptester.exe     <- narzędzie terminala dla agentów AI
       RemoteAppTester-android-<wersja>.apk      <- z -WithAndroid
@@ -85,7 +85,7 @@ try {
         Copy-Item (Join-Path $repoDir 'android_app\build\app\outputs\flutter-apk\app-release.apk') (Join-Path $out "RemoteAppTester-android-$version.apk")
     }
 
-    Copy-Item deploy\windows\install.ps1, deploy\windows\install.cmd, deploy\windows\uninstall.cmd, deploy\windows\README.md $out
+    Copy-Item deploy\windows\install.ps1, deploy\windows\install.cmd, deploy\windows\uninstall.cmd, deploy\windows\README.md, deploy\windows\README.pl.md $out
 
     # SHA256SUMS w formacie sha256sum — install.ps1 sprawdza każdy plik programu.
     $sums = Get-ChildItem -Recurse -File $app | ForEach-Object {

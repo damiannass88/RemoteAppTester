@@ -1,5 +1,7 @@
 # Założenia projektu — RemoteAppTester
 
+> 🌐 **English:** maintainer design notes, written in Polish. User documentation in English: [README](../README.md), [docs/en/](en/GUIDE.md).
+
 > Źródło prawdy dla zakresu i decyzji. Plan realizacji: [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
 > Bezpieczeństwo: [SECURITY.md](SECURITY.md). Architektura transportu (TLS pinning, HMAC,
 > parowanie, instalacja APK) odziedziczona z projektu RemoteDevelopment:

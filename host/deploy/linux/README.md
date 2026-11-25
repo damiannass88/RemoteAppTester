@@ -1,107 +1,111 @@
-# RemoteAppTester na serwer Linux (VPS)
+# RemoteAppTester on a Linux server (VPS)
 
-Wersja bez okna: te same funkcje co na Windows (projekty, komendy, opcje, buildy, dostawy na
-telefon, sygnał agenta AI, języki), obsługiwane poleceniami `rt` i z telefonu.
+🌐 **English** · [Polski](README.pl.md)
 
-## Wymagania
+The version without a window: the same features as on Windows (projects, commands, options, builds,
+delivery to the phone, AI agent signals, languages), operated with `rt` commands and from the phone.
 
-- Linux z glibc 2.34+: Ubuntu 22.04+, Debian 12+, RHEL/Alma/Rocky 9+, Fedora, openSUSE, Arch i pochodne.
-- x86_64 (narzędzia Google do budowania Androida są publikowane dla x86_64).
-- Min. 4 GB RAM (lub swap) i ok. 15 GB wolnego miejsca na Flutter i Android SDK.
-- Konto Tailscale, to samo co na telefonie.
+New to servers? Follow the step-by-step [VPS guide](../../../docs/en/VPS.md) together with an AI chat.
 
-Alpine i inne systemy z musl nie są obsługiwane: instalator odmówi z wyjaśnieniem.
+## Requirements
 
-## Instalacja
+- Linux with glibc 2.34+: Ubuntu 22.04+, Debian 12+, RHEL/Alma/Rocky 9+, Fedora, openSUSE, Arch and derivatives.
+- x86_64 (Google publishes the Android build tools for x86_64 only).
+- At least 4 GB RAM (or swap) and about 15 GB free space for Flutter and the Android SDK.
+- A Tailscale account, the same one as on the phone.
+
+Alpine and other musl systems are not supported: the installer refuses with an explanation.
+
+## Installation
 
 ```
-tar xzf RemoteAppTester-linux-<wersja>.tar.gz
-cd RemoteAppTester-linux-<wersja>
+tar xzf RemoteAppTester-linux-<version>.tar.gz
+cd RemoteAppTester-linux-<version>
 sudo bash install.sh
 ```
 
-Instalator sprawdza sumy SHA-256, tworzy użytkownika `remoteapptester` bez uprawnień administratora,
-instaluje program, Flutter, Android SDK i Tailscale, uruchamia usługę i pokazuje kod QR do
-zeskanowania telefonem. Ponowne uruchomienie to aktualizacja, bez utraty danych. Opcje: `--help`.
+The installer checks SHA-256 checksums and creates a `remoteapptester` user without administrator
+rights. It installs the program, Flutter, the Android SDK and Tailscale, starts the service and shows
+a QR code to scan with the phone. Running it again updates the program and keeps your data. Options: `--help`.
 
-**Na telefonie obowiązkowo:** Ustawienia → Aplikacje → RemoteAppTester (i Tailscale) → Oszczędzanie
-baterii → **„Bez ograniczeń”**. Xiaomi/HyperOS domyślnie ogranicza nowe aplikacje i wtedy telefon
-nie łączy się z serwerem („Connection timed out”).
+**Required on the phone:** Settings → Apps → RemoteAppTester (and Tailscale) → Battery →
+**"Unrestricted"**. Xiaomi/HyperOS restricts new apps by default, and then the phone cannot reach the
+server ("Connection timed out").
 
-Instalator pyta o zgodę na licencje Android SDK firmy Google (https://developer.android.com/studio/terms).
-Bez terminala (np. cloud-init) zgodę daje opcja `--accept-android-licenses`. Bez Android SDK: `--skip-flutter`.
+The installer asks you to accept Google's Android SDK licences (https://developer.android.com/studio/terms).
+Without a terminal (e.g. cloud-init), `--accept-android-licenses` gives that consent. Without the Android SDK: `--skip-flutter`.
 
-Instalacja bez terminala (np. cloud-init): `TS_AUTHKEY=... sudo -E bash install.sh --no-pair`.
+Installing without a terminal (e.g. cloud-init): `TS_AUTHKEY=... sudo -E bash install.sh --no-pair`.
 
-**Reguły dostępu Tailscale (ACL).** Jeśli w panelu Tailscale (Access controls) masz własne reguły
-zamiast domyślnego „wszyscy do wszystkich”, dodaj dostęp telefonów do portu RemoteAppTestera
-(domyślnie **47051**; do wersji 0.6 było 50051). `sudo rt acl` (z `--with <komputer>` dla kolejnych komputerów z RemoteAppTesterem) tworzy
-gotową politykę z urządzeń Twojej sieci Tailscale, np.:
+**Tailscale access rules (ACL).** If your Tailscale admin panel (Access controls) has your own rules
+instead of the default "everyone to everyone", allow the phones to reach the RemoteAppTester port
+(default **47051**; up to version 0.6 it was 50051). `sudo rt acl` (with `--with <computer>` for further
+computers running RemoteAppTester) builds a ready policy from the devices in your Tailscale network, e.g.:
 
 ```json
-"grants": [{"src": ["<IP telefonu>"], "dst": ["<IP komputera>"], "ip": ["tcp:47051"]}]
+"grants": [{"src": ["<phone IP>"], "dst": ["<computer IP>"], "ip": ["tcp:47051"]}]
 ```
 
-Bez tego telefon dostaje „Connection timed out”, choć Tailscale pokazuje połączenie.
+Without it the phone gets "Connection timed out", even though Tailscale shows a connection.
 
-**Nowy projekt z telefonu.** W aplikacji na telefonie przycisk „Nowy projekt” tworzy projekt
-Flutter albo pusty folder, albo przypisuje wolny folder — zawsze w katalogu projektów
-komputera (`projects_root`), po samej nazwie; komendy wpisuje komputer. Wyłączysz to w
-`host-config.yaml`: `phone_add_projects: false` (potem uruchom program ponownie).
+**New project from the phone.** The "New project" button in the phone app creates a Flutter project
+or an empty folder, or assigns a free folder. It always works inside the computer's projects folder
+(`projects_root`), by name only, and the computer fills in the commands. To turn it off, set
+`phone_add_projects: false` in `host-config.yaml` and restart the program.
 
-## Gdzie co jest
+## Where things are
 
-| Co | Gdzie |
+| What | Where |
 |---|---|
 | Program | `/opt/remoteapptester` |
-| Dane (baza, klucze, logi) | `/var/lib/remoteapptester`, tylko dla użytkownika usługi |
-| Projekty | `/srv/remoteapptester/projects`, zapis dla grupy `remoteapptester` |
+| Data (database, keys, logs) | `/var/lib/remoteapptester`, only for the service user |
+| Projects | `/srv/remoteapptester/projects`, writable by the `remoteapptester` group |
 
-## Praca
-
-```
-sudo rt                         # lista poleceń i ostatnio używane
-sudo rt n aplikacja --flutter   # nowy projekt
-sudo rt a /sciezka/do/folderu   # przypisz istniejący folder
-sudo rt pr aplikacja            # komendy budowania
-sudo rt pr import               # zatwierdź komendy zaproponowane przez agenta
-sudo rt o aplikacja --install ask --agent-build on
-sudo rt b aplikacja             # zbuduj i wyślij
-sudo rt lg aplikacja            # historia i log
-sudo rt p "Drugi telefon"       # sparuj kolejny telefon
-sudo rt acl                     # reguły dostępu Tailscale (JSON) dla telefonów
-sudo rt la en                   # język poleceń: auto, pl, en, de, cs
-sudo rt info                    # przewodnik: bezpieczeństwo, agenci AI, sandbox, publikacja
-```
-
-## Agenci AI
-
-Dodaj konto agenta do grupy projektów: `sudo bash install.sh --add-user <login>` (albo
-`usermod -aG remoteapptester <login>`). Agent pracuje w `/srv/remoteapptester/projects/<projekt>`
-i po skończonej pracy wysyła sygnał, bez sudo i bez dostępu do danych programu:
+## Daily use
 
 ```
-rt sg -m "co zmieniono" --build --wait            # RemoteAppTester buduje zatwierdzonymi komendami
-rt push build/app/outputs/flutter-apk/app-debug.apk -m "co zmieniono" --wait --json   # agent zbudował sam
-rt st --json                                      # wynik ostatniego zlecenia
+sudo rt                         # list of commands and recently used ones
+sudo rt n myapp --flutter       # new project
+sudo rt a /path/to/folder       # assign an existing folder
+sudo rt pr myapp                # build commands
+sudo rt pr import               # approve commands proposed by the agent
+sudo rt o myapp --install ask --agent-build on
+sudo rt b myapp                 # build and send
+sudo rt lg myapp                # history and log
+sudo rt p "Second phone"        # pair another phone
+sudo rt acl                     # Tailscale access rules (JSON) for the phones
+sudo rt la en                   # command language: auto, pl, en, de, cs
+sudo rt info                    # guide: security, AI agents, sandbox, publishing
 ```
 
-Kody wyjścia, format wyniku i zasady: [docs/AGENCI_AI.md](../../../docs/AGENCI_AI.md). Wysyłanie
-własnych instalek wyłączysz opcją `sudo rt o <projekt> --agent-push off`.
+## AI agents
 
-Nie dawaj agentowi `sudo`. Build wykonuje skrypty z repozytorium, więc na serwerze z innymi
-usługami lepiej przeznaczyć dla agentów osobną maszynę. Więcej: `sudo rt info`.
-
-## Usługa
-
-`systemctl status remoteapptester`, `journalctl -u remoteapptester -f`. Na systemach z OpenRC
-powstaje `/etc/init.d/remoteapptester`, a bez menedżera usług uruchom `sudo rt s` w tmux lub screen.
-
-Serwer nasłuchuje wyłącznie na adresie Tailscale. Instalator nie otwiera portów i nie zmienia zapory.
-
-## Odinstalowanie
+Add the agent's account to the projects group: `sudo bash install.sh --add-user <login>` (or
+`usermod -aG remoteapptester <login>`). The agent works in `/srv/remoteapptester/projects/<project>`
+and, when done, sends a signal, without sudo and without access to the program's data:
 
 ```
-sudo bash install.sh --uninstall           # dane i projekty zostają
-sudo bash install.sh --uninstall --purge   # usuwa też dane, projekty i użytkownika
+rt sg -m "what changed" --build --wait            # RemoteAppTester builds with the approved commands
+rt push build/app/outputs/flutter-apk/app-debug.apk -m "what changed" --wait --json   # the agent built it itself
+rt st --json                                      # result of the last request
+```
+
+Exit codes, result format and rules: [docs/en/AI_AGENTS.md](../../../docs/en/AI_AGENTS.md). To stop agents
+sending their own APKs: `sudo rt o <project> --agent-push off`.
+
+Never give the agent `sudo`. A build runs scripts from the repository, so on a server with other
+services it is better to give the agents a separate machine. More: `sudo rt info`.
+
+## Service
+
+`systemctl status remoteapptester`, `journalctl -u remoteapptester -f`. On OpenRC systems the
+installer creates `/etc/init.d/remoteapptester`; without a service manager run `sudo rt s` in tmux or screen.
+
+The server listens only on the Tailscale address. The installer opens no ports and does not change the firewall.
+
+## Uninstalling
+
+```
+sudo bash install.sh --uninstall           # data and projects stay
+sudo bash install.sh --uninstall --purge   # also removes data, projects and the user
 ```

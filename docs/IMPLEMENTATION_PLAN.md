@@ -1,5 +1,7 @@
 # Plan realizacji — RemoteAppTester
 
+> 🌐 **English:** maintainer design notes, written in Polish. User documentation in English: [README](../README.md), [docs/en/](en/GUIDE.md).
+
 > Zakres i decyzje: [PROJECT_ASSUMPTIONS.md](PROJECT_ASSUMPTIONS.md). Bezpieczeństwo:
 > [SECURITY.md](SECURITY.md). Każda faza kończy się zielonym `dart analyze`/`dart test`
 > (host) i `flutter analyze`/`flutter test` (aplikacja) oraz testem na prawdziwym telefonie

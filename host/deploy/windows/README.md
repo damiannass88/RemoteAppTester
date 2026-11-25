@@ -1,58 +1,64 @@
-# RemoteAppTester na Windows
+# RemoteAppTester on Windows
 
-## Instalacja
+🌐 **English** · [Polski](README.pl.md)
 
-1. Rozpakuj `RemoteAppTester-windows-x64-<wersja>.zip` (cały folder).
-2. Uruchom **`install.cmd`** (dwuklik). Nie wymaga uprawnień administratora — o zgodę
-   administratora (okno UAC) zapyta tylko przy regule zapory, jeśli się zgodzisz.
-3. Otworzy się aplikacja RemoteAppTester: **Telefony → Sparuj telefon** i zeskanuj kod w
-   aplikacji na telefonie (`RemoteAppTester-android-<wersja>.apk` z tej paczki).
-   **Na telefonie obowiązkowo:** Ustawienia → Aplikacje → RemoteAppTester → Oszczędzanie baterii →
-   **„Bez ograniczeń”** (to samo dla aplikacji Tailscale). Xiaomi/HyperOS domyślnie ogranicza nowe
-   aplikacje i wtedy telefon nie łączy się z komputerem („Connection timed out”).
-4. **Projekty → „+”** — dodaj folder z aplikacją; komendy budowania wpiszą się same.
+## Installation
 
-Wymagania: Windows 10/11 64-bit, [Tailscale](https://tailscale.com/download/windows)
-zalogowany tym samym kontem co na telefonie (instalator zaproponuje instalację przez
-`winget`), narzędzia do budowania projektów (np. Flutter, Android SDK).
+1. Unzip `RemoteAppTester-windows-x64-<version>.zip` (the whole folder).
+2. Run **`install.cmd`** (double-click). It does not need administrator rights. It asks for
+   administrator consent (a UAC window) only for the firewall rule, and only if you agree.
+3. The RemoteAppTester app opens: **Phones → Pair phone**, then scan the code with the phone app
+   (`RemoteAppTester-android-<version>.apk`).
+   **Required on the phone:** Settings → Apps → RemoteAppTester → Battery → **"Unrestricted"**
+   (the same for the Tailscale app). Xiaomi/HyperOS restricts new apps by default, and then the
+   phone cannot reach the computer ("Connection timed out").
+4. **Projects → "+"**: add the folder with your app. Build commands are filled in automatically.
 
-Opcje (`install.cmd -Opcja`): `-NoAutostart`, `-NoFirewall`, `-NoShortcuts`, `-NoPath`,
+Requirements: Windows 10/11 64-bit, [Tailscale](https://tailscale.com/download/windows) signed in
+with the same account as on the phone (the installer offers to install it with `winget`), and the
+tools to build your projects (e.g. Flutter, Android SDK).
+
+Not technical? [Prompt 3](../../../docs/en/PROMPTS.md#3-installing-remoteapptester-on-windows) walks
+you through it with an AI chat.
+
+Options (`install.cmd -Option`): `-NoAutostart`, `-NoFirewall`, `-NoShortcuts`, `-NoPath`,
 `-NoLaunch`, `-Port 47051`.
 
-**Reguły dostępu Tailscale (ACL).** Jeśli w panelu Tailscale (Access controls) masz własne reguły
-zamiast domyślnego „wszyscy do wszystkich”, dodaj dostęp telefonów do portu RemoteAppTestera
-(domyślnie **47051**; do wersji 0.6 było 50051). przycisk **Telefony → Generuj JSON dla Tailscale** (albo `rt acl`) tworzy gotową
-politykę z urządzeń Twojej sieci Tailscale, np.:
+**Tailscale access rules (ACL).** If your Tailscale admin panel (Access controls) has your own rules
+instead of the default "everyone to everyone", allow the phones to reach the RemoteAppTester port
+(default **47051**; up to version 0.6 it was 50051). The **Phones → Generate JSON for Tailscale**
+button (or `rt acl`) builds a ready policy from the devices in your Tailscale network, e.g.:
 
 ```json
-"grants": [{"src": ["<IP telefonu>"], "dst": ["<IP komputera>"], "ip": ["tcp:47051"]}]
+"grants": [{"src": ["<phone IP>"], "dst": ["<computer IP>"], "ip": ["tcp:47051"]}]
 ```
 
-Bez tego telefon dostaje „Connection timed out”, choć Tailscale pokazuje połączenie.
+Without it the phone gets "Connection timed out", even though Tailscale shows a connection.
 
-**Nowy projekt z telefonu.** W aplikacji na telefonie przycisk „Nowy projekt” tworzy projekt
-Flutter albo pusty folder, albo przypisuje wolny folder — zawsze w katalogu projektów
-komputera (`projects_root`), po samej nazwie; komendy wpisuje komputer. Wyłączysz to w
-`host-config.yaml`: `phone_add_projects: false` (potem uruchom program ponownie).
+**New project from the phone.** The "New project" button in the phone app creates a Flutter project
+or an empty folder, or assigns a free folder. It always works inside the computer's projects folder
+(`projects_root`), by name only, and the computer fills in the commands. To turn it off, set
+`phone_add_projects: false` in `host-config.yaml` and restart the program.
 
-## Co robi instalator
+## What the installer does
 
-| Krok | Szczegóły |
+| Step | Details |
 |---|---|
-| Aplikacja | `%LOCALAPPDATA%\Programs\RemoteAppTester\RemoteAppTester.exe`; sumy SHA-256 wszystkich plików sprawdzane przed instalacją |
-| Terminal / agenci AI | `rt` i `remoteapptester` w PATH użytkownika (`...\RemoteAppTester\cli\bin`) |
-| Dane | `%LOCALAPPDATA%\RemoteAppTester` — zaszyfrowana baza projektów i komend, sparowane telefony, logi, instalki; klucze w Windows DPAPI |
-| Skróty i autostart | menu Start, pulpit; start przy logowaniu schowany w zasobniku (wyłączysz w Ustawieniach) |
-| Zapora | reguła „RemoteAppTester (Tailscale only)”: tylko `RemoteAppTester.exe`, ten port, adresy `100.64.0.0/10` |
+| App | `%LOCALAPPDATA%\Programs\RemoteAppTester\RemoteAppTester.exe`; SHA-256 checksums of all files are checked before installing |
+| Terminal / AI agents | `rt` and `remoteapptester` in the user's PATH (`...\RemoteAppTester\cli\bin`) |
+| Data | `%LOCALAPPDATA%\RemoteAppTester`: encrypted database of projects and commands, paired phones, logs, builds; keys in Windows DPAPI |
+| Shortcuts and autostart | Start menu, desktop; starts hidden in the tray at sign-in (can be turned off in Settings) |
+| Firewall | rule "RemoteAppTester (Tailscale only)": only `RemoteAppTester.exe`, this port, addresses `100.64.0.0/10` |
 
-Program przyjmuje połączenia od telefonów wyłącznie na adresie Tailscale. Aktualizacja:
-nowsza paczka → `install.cmd` (dane zostają; wersja 0.3 z Harmonogramem zadań jest
-przenoszona automatycznie). Odinstalowanie: `uninstall.cmd` (dane zostają) albo
-`uninstall.cmd -Purge`. Foldery projektów i ich `REMOTEAPPTESTER.md` zostają nietknięte.
+The program accepts phone connections only on the Tailscale address. Updating: newer package →
+`install.cmd` (data stays; a version 0.3 setup with Task Scheduler is migrated automatically).
+Uninstalling: `uninstall.cmd` (data stays) or `uninstall.cmd -Purge`. Project folders and their
+`REMOTEAPPTESTER.md` are left untouched.
 
-## Uwagi
+## Notes
 
-- **SmartScreen:** program nie jest podpisany certyfikatem — „Więcej informacji” →
-  „Uruchom mimo to”. Instalator zdejmuje znacznik „pobrane z internetu” z zainstalowanych plików.
-- **Zamknięcie okna** chowa aplikację do zasobnika — buildy i telefony działają dalej.
-  „Zakończ” jest w menu ikony w zasobniku.
+- **SmartScreen:** the program is not signed with a paid certificate: "More info" → "Run anyway".
+  Check the `.sha256` file of the download first. The installer removes the "downloaded from the
+  internet" mark from the installed files.
+- **Closing the window** hides the app in the tray. Builds and phones keep working.
+  "Exit" is in the tray icon's menu.

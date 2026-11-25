@@ -44,7 +44,7 @@ for arch in "${arches[@]}"; do
   "
 done
 
-cp deploy/linux/install.sh deploy/linux/README.md "$out/"
+cp deploy/linux/install.sh deploy/linux/README.md deploy/linux/README.pl.md "$out/"
 sed -i 's/\r$//' "$out/install.sh"
 (cd "$out" && find . -type f ! -name SHA256SUMS | LC_ALL=C sort | xargs sha256sum | sed 's/ \*/  /' > SHA256SUMS)
 

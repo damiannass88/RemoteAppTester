@@ -1,12 +1,14 @@
-# Contributing / Współpraca
+# Contributing
 
-Thanks for helping! Most docs and code comments are in Polish. Issues and pull requests in
+🌐 **English** · [Polski](CONTRIBUTING.pl.md)
+
+Thanks for helping! Code comments and the maintainer's design notes are in Polish; user docs exist in English and Polish. Issues and pull requests in
 English or Polish are both fine.
 
 ## Ground rules
 
 - **Security first.** Any new build method or change to the phone ↔ host contract needs a
-  security review against [docs/SECURITY.md](docs/SECURITY.md) ("Checklist"). The phone must never
+  security review against [docs/en/SECURITY.md](docs/en/SECURITY.md) ("Checklist"). The phone must never
   be able to send shell commands or file paths. Build commands come only from the encrypted
   database, after the user has approved them.
 - **Never commit secrets:** keystores, `key.properties`, `host-config.yaml`, pairing data, tokens.
@@ -27,6 +29,8 @@ English or Polish are both fine.
 - **Version:** the same version lives in `host/lib/version.dart`, `host/deploy/windows/install.ps1`,
   `host/deploy/linux/install.sh`, both `pubspec.yaml` files (`X.Y.Z+N`, N = X·10000+Y·100+Z) and
   `android_app/lib/app_version.dart`. The release scripts refuse to build if they differ.
+- **Documentation:** when you change user-facing docs, update both languages (`docs/*.md` and
+  `docs/en/*.md`, `README.md` and `README.pl.md`).
 - **Release packages:** `host/tool/build_release.ps1 -WithAndroid` (Windows + APK),
   `host/tool/build_release.sh` (Linux x64/arm64 via Docker).
 

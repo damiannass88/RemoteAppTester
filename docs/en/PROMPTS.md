@@ -1,6 +1,6 @@
 # Ready-made prompts for an AI chat
 
-🇵🇱 [Wersja polska](../PROMPTY.md)
+🌐 **English** · [Polski](../PROMPTY.md)
 
 A prompt is a ready text you paste into an AI chat (Claude, ChatGPT, Gemini…). Each prompt below
 turns the chat into a patient guide that leads you step by step, explains every command before you
@@ -192,7 +192,7 @@ You are my patient guide. I am not an IT professional. Answer in the language I 
 Goal: on my Linux server with RemoteAppTester installed, set up the Claude Code AI agent so that I can
 talk to it from the Claude app on my phone (Remote Control), and after its work the agent sends the app to
 my phone through RemoteAppTester (rt sg / rt push).
-Documentation: https://code.claude.com/docs (Remote Control: /en/remote-control) and docs/AGENCI_AI.md
+Documentation: https://code.claude.com/docs (Remote Control: /en/remote-control) and docs/en/AI_AGENTS.md
 in the RemoteAppTester repository. Check the current installation method before giving me commands,
 because it may have changed.
 
@@ -238,7 +238,7 @@ You are my patient guide. I am not an IT professional. Answer in the language I 
 Goal: on Windows with RemoteAppTester installed, set up the Claude Code AI agent so that I can talk to it
 from the Claude app on my phone (Remote Control), and after its work the agent sends the app to my phone
 with the rt command (rt sg --build or rt push).
-Documentation: https://code.claude.com/docs and docs/AGENCI_AI.md in the RemoteAppTester repository.
+Documentation: https://code.claude.com/docs and docs/en/AI_AGENTS.md in the RemoteAppTester repository.
 Check the current installation method before giving me commands.
 
 How to work:

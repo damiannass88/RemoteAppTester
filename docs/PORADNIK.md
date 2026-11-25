@@ -1,6 +1,6 @@
 # Poradnik: praca z RemoteAppTester od zera
 
-🇬🇧 [English version](en/GUIDE.md)
+🌐 [English](en/GUIDE.md) · **Polski**
 
 Dla kogo: masz pomysł na aplikację, chcesz ją zbudować z pomocą sztucznej inteligencji
 i nie jesteś informatykiem. Ten poradnik tłumaczy, jak to działa, czego potrzebujesz i jak
@@ -73,7 +73,7 @@ każde polecenie, zanim je wykonasz.
 
 1. **Tailscale** na telefonie i komputerze/serwerze, zalogowany tym samym kontem.
 2. **RemoteAppTester:**
-   - Windows: [prompt 3](PROMPTY.md#3-instalacja-remoteapptester-na-windows) i [instrukcja](../host/deploy/windows/README.md);
+   - Windows: [prompt 3](PROMPTY.md#3-instalacja-remoteapptester-na-windows) i [instrukcja](../host/deploy/windows/README.pl.md);
    - VPS: najpierw [prompt 1 (zabezpieczenie serwera)](PROMPTY.md#1-przygotowanie-i-zabezpieczenie-serwera-vps),
      potem [prompt 2](PROMPTY.md#2-instalacja-remoteapptester-na-serwerze-linux).
 3. **Aplikacja na telefonie:** zainstaluj plik `RemoteAppTester-android-<wersja>.apk`. Android

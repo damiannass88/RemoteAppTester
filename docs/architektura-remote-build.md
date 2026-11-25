@@ -1,5 +1,7 @@
 # Architektura transportu i bezpieczeństwa (odziedziczona z RemoteDevelopment)
 
+> 🌐 **English:** maintainer design notes, written in Polish. User documentation in English: [README](../README.md), [docs/en/](en/GUIDE.md).
+
 > **Status w RemoteAppTester:** dokument historyczny z projektu RemoteDevelopment (Etap A),
 > zachowany jako uzasadnienie warstwy transportu i bezpieczeństwa, które RemoteAppTester przejął
 > bez zmian: Tailscale-only bind, TLS pinning, HMAC z nonce/timestamp, parowanie lokalne,

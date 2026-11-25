@@ -1,6 +1,6 @@
 # Serwer VPS dla RemoteAppTester i agenta AI (przykład: Contabo)
 
-🇬🇧 [English version](en/VPS.md)
+🌐 [English](en/VPS.md) · **Polski**
 
 VPS to wynajęty w internecie komputer z Linuxem, który działa cały czas. Na takim serwerze
 działają RemoteAppTester i agent AI, a Ty sterujesz wszystkim z telefonu. Twój domowy
@@ -112,7 +112,7 @@ Tailscale działa, bo w razie problemu zostaje tylko konsola VNC.
    Instalator sprawdza sumy plików, tworzy konto usługi `remoteapptester` bez uprawnień
    administratora, instaluje program, Fluttera, Android SDK i Tailscale, uruchamia usługę
    i na końcu pokazuje **kod QR do zeskanowania telefonem**. Trwa to kilkanaście minut.
-   Nie otwiera portów i nie zmienia zapory. Szczegóły i opcje: [host/deploy/linux/README.md](../host/deploy/linux/README.md).
+   Nie otwiera portów i nie zmienia zapory. Szczegóły i opcje: [host/deploy/linux/README.pl.md](../host/deploy/linux/README.pl.md).
 
    - Gdy pojawi się **link logowania Tailscale**, otwórz go i zaloguj się tym samym kontem co na telefonie.
    - Instalator zapyta, czy akceptujesz licencje Android SDK (narzędzia Google). Przeczytaj je:

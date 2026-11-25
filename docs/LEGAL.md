@@ -1,6 +1,6 @@
 # Informacje prawne / Legal notice
 
-*English summary below.*
+🌐 [Polski](#po-polsku) · [English](#in-english)
 
 > To nie jest porada prawna. Opisuje, jak działa projekt i kto za co odpowiada.
 

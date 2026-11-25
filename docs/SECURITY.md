@@ -1,9 +1,12 @@
 # Bezpieczeństwo i prywatność — RemoteAppTester
 
+🌐 [English](en/SECURITY.md) · **Polski**
+
 > Decyzje S1–S10: [PROJECT_ASSUMPTIONS.md](PROJECT_ASSUMPTIONS.md), sekcja 7. Szczegółowa
 > architektura i uzasadnienia warstwy transportu (odziedziczone z RemoteDevelopment, gdzie
 > zostały zweryfikowane end-to-end, także z prawdziwym telefonem):
-> [architektura-remote-build.md](architektura-remote-build.md), sekcja 6.
+> [architektura-remote-build.md](architektura-remote-build.md), sekcja 6. Zgłaszanie podatności:
+> [.github/SECURITY.md](../.github/SECURITY.md).
 
 ## Model zagrożeń
 
@@ -25,7 +28,7 @@
 | Kopia zapasowa telefonu | `allowBackup=false` i reguły ekstrakcji: dane aplikacji nie trafiają do chmury ani na nowy telefon | działa |
 | Agent AI na tym samym koncie | szyfrowanie DPAPI nie chroni przed programem działającym jako użytkownik; granica „tylko sygnał” jest wtedy umową, nie barierą. Zalecenie: agent i build w sandboksie (zakładka Informacje) | ryzyko świadome |
 | Build wykonuje kod z repozytorium | Gradle i inne narzędzia uruchamiają skrypty projektu; build w tym samym środowisku co agent | ryzyko świadome |
-| Zgubiony telefon | Keystore, biometria/PIN przed wrażliwymi akcjami, pojedyncze odwołanie `remoteapptester revoke` | działa |
+| Zgubiony telefon | Keystore, blokada aplikacji (odcisk palca/PIN przy starcie i po powrocie z tła), biometria/PIN przed wrażliwymi akcjami, pojedyncze odwołanie `remoteapptester revoke` | działa |
 | Inny użytkownik / malware na hoście czyta sekrety | Windows DPAPI; Linux plik `0600` użytkownika `remoteapptester`; nigdy plaintext | działa |
 | Brute-force / DoS | rate limiting per urządzenie, lockout per adres źródłowy, jeden build naraz, kill-switch | działa |
 | Wyciek sekretów w logach builda | redakcja wzorców `*_KEY`/`*_TOKEN`/`*_PASSWORD`/`*_SECRET` przed wysłaniem na telefon | działa |
@@ -51,7 +54,8 @@
       żądaniu; wszystkie wywołania z telefonu przez `AgentClient`, żeby podpisu nie dało się
       pominąć.
 - [ ] **Tailscale ACL** — dla każdego hosta: grant tylko telefon(y) → host na porcie usługi
-      (domyślnie `tcp:47051`), reszta zabroniona.
+      (domyślnie `tcp:47051`), reszta zabroniona. `rt acl` / przycisk „Generuj JSON dla Tailscale”
+      przygotowuje politykę.
 - [ ] **Windows Firewall** — reguła przychodząca na port usługi, zawężona do adresu telefonu
       w tailnecie (osobna warstwa od ACL; bez niej Windows po cichu blokuje telefon).
       `remoteapptester doctor` sprawdza jej obecność. Polecenie (PowerShell jako administrator):
@@ -87,6 +91,8 @@
 ### Aplikacja Android
 
 - [x] `device_id`, `pairing_secret`, odcisk certyfikatu w Keystore (`flutter_secure_storage`).
+- [x] Blokada aplikacji: odcisk palca/PIN przy starcie i po czasie w tle; wyłączenie albo
+      osłabienie wymaga potwierdzenia (`app_lock.dart`).
 - [x] Biometria/PIN przed startem builda i instalacją (`sensitive_action_gate.dart`).
 - [x] SHA-256 i `applicationId` przed instalacją; instalacja przez `PackageInstaller`, bez
       roota i ADB.

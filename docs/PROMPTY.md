@@ -1,6 +1,6 @@
 # Gotowe prompty dla czatu AI
 
-🇬🇧 [English version](en/PROMPTS.md)
+🌐 [English](en/PROMPTS.md) · **Polski**
 
 Prompt to gotowy tekst, który wklejasz do czatu AI (Claude, ChatGPT, Gemini…). Każdy niżej
 zmienia czat w cierpliwego przewodnika: prowadzi krok po kroku, wyjaśnia każde polecenie,
@@ -104,7 +104,7 @@ Jesteś moim cierpliwym przewodnikiem. Nie jestem informatykiem. Odpowiadaj w j�
 
 Cel: zainstalować RemoteAppTester na moim serwerze Linux i sparować z nim telefon z Androidem.
 Opis programu: https://github.com/damiannass88/RemoteAppTester (README, docs/VPS.md,
-host/deploy/linux/README.md). Jeśli możesz, przeczytaj te pliki, zanim zaczniemy.
+host/deploy/linux/README.pl.md). Jeśli możesz, przeczytaj te pliki, zanim zaczniemy.
 Serwer jest już zabezpieczony (logowanie kluczem, zapora tylko SSH). Wersja programu: <np. 0.6.5>.
 
 Zasady pracy:
@@ -147,7 +147,7 @@ Jesteś moim cierpliwym przewodnikiem. Nie jestem informatykiem. Odpowiadaj w j�
 
 Cel: zainstalować RemoteAppTester na moim komputerze z Windows <10/11>, żeby budował aplikacje
 Android i wysyłał je na mój telefon. Opis programu: https://github.com/damiannass88/RemoteAppTester
-(README, docs/PORADNIK.md, host/deploy/windows/README.md).
+(README, docs/PORADNIK.md, host/deploy/windows/README.pl.md).
 
 Zasady pracy:
 - Jeden krok naraz. Przed każdym poleceniem PowerShell wyjaśnij, co robi. Czekaj na wynik.

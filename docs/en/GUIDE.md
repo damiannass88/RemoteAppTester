@@ -1,6 +1,6 @@
 # Guide: working with RemoteAppTester from scratch
 
-🇵🇱 [Wersja polska](../PORADNIK.md)
+🌐 **English** · [Polski](../PORADNIK.md)
 
 Who this is for: you have an idea for an app, you want to build it with the help of artificial
 intelligence, and you are not an IT professional. This guide explains how it works, what you need
@@ -72,7 +72,7 @@ will explain every command before you run it.
 
 1. **Tailscale** on the phone and the computer/server, signed in with the same account.
 2. **RemoteAppTester:**
-   - Windows: [prompt 3](PROMPTS.md#3-installing-remoteapptester-on-windows) and [instructions](../../host/deploy/windows/README.md) (PL);
+   - Windows: [prompt 3](PROMPTS.md#3-installing-remoteapptester-on-windows) and [instructions](../../host/deploy/windows/README.md);
    - VPS: first [prompt 1 (securing the server)](PROMPTS.md#1-preparing-and-securing-a-vps),
      then [prompt 2](PROMPTS.md#2-installing-remoteapptester-on-a-linux-server).
 3. **Phone app:** install `RemoteAppTester-android-<version>.apk`. Android asks for permission to
@@ -113,7 +113,7 @@ will explain every command before you run it.
 6. **Backups:** keep your project code in a git repository (e.g. a private one on GitHub). An AI agent
    can break or delete things.
 
-More: the **Info** tab in the app (also `rt info`) and [SECURITY.md](../SECURITY.md) (PL).
+More: the **Info** tab in the app (also `rt info`) and [SECURITY.md](SECURITY.md).
 
 ## 7. Common problems
 
